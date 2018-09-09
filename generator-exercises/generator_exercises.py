@@ -80,4 +80,37 @@ def zip_n(n, generator_1, generator_2):
 				yield from zip_n_aux(generator_1, generator_2, left, total)
 			
 		
-	return zip_n_aux(generator_1, generator_2, n, n)			
+	return zip_n_aux(generator_1, generator_2, n, n)
+
+# unzip: take stream and return ordered pair of streams where the first stream contains the odd elements in stream and second stream even elements of stream.
+
+# unzip_n: take stream and return ordered pair of streams where streams alternatingly contain elements of each stream.
+
+# discard_n: return stream left after removing first n elements.
+def discard_n(n, generator):
+	itertools.islice(generator, n)
+	return generator
+
+# fold_n: perform fold on first n elements of list.
+
+
+# fold_stream: perform fold operation on stream and return stream of accumulator values.
+
+# rle: encode stream using the rle encoding algorithm. Return ordered pair (int * 'a).
+# NOTE: A type with two quotation marks in front of it instead of one is an equality type, which means that the = operator works on it. 
+# That also means that you can't call your function on things that are not equality types,  though.
+
+# rle_decode: take a stream of ordered pairs (int * 'a) where the first element is the number of repetitions of element at second position and
+# return a stream representing the decoded data (convert each ordered pair to n repetitions of elements and add to stream).
+
+# The Sieve of Eratosthenes is possibly the oldest systematic method (algorithm) for generating the
+# sequence of all prime numbers. The "sieve" can be described as follows:
+
+# step 1: Generate the sequence of natural numbers starting at 2.
+# step 2: Position yourself just before the beginning of the sequence.
+# step 3: Find the next available number in the sequence. Write it down; it is prime.
+# step 4: Cross out (delete) all multiples of the number identified in step 3.
+# step 5: Continue with step 3.
+
+
+# sieve: implement the Sieve of Eratosthenes. This function expects to be passed a stream of natural numbers starting with 2.
