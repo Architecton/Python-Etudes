@@ -47,3 +47,4 @@ return_sum = partial(add_to_20, 80)
 # lines = read('example_log.txt')
 # ip_addresses = list(extract_ip(lines))
 ###########################################################
+
