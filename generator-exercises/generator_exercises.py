@@ -17,7 +17,7 @@ def nats(n):
 
 # tl: returns the generator that results after removing the first element.
 def tl(generator):
-	list(itertools.islice(generator, 1))
+	next(generator)
 	return generator
 
 # map: returns the generator with function applied to each value generated
@@ -34,67 +34,109 @@ def filter_gen(func, generator):
 
 # multiples: return generator that generates multiples of n.
 def multiples(n):
+	# Define auxiliary function that takes an additional parameter used for recursion.
 	def multiples_aux(n, acc):
-		yield acc
-		yield from multiples_aux(n, acc + n)
+		yield acc 								# Yield accumulator value.
+		yield from multiples_aux(n, acc + n) 	# Yield value with accumulator incremented by n (yielding sequence (n, n + n, n + n + n, ...)).
 
 	return multiples_aux(n, 0)
 
 # concat: concatenate two generators and return result
+def concat(generator1, generator2): # itertools.chain() function does the same thing.
+	for el in generator1:
+		yield el
+	for el in generator2:
+		yield el
 
 # zip: take two generators and return a generator that alternatly returns element from each one.
 def zip(generator_1, generator_2):
+	# Auxiliary function that returns the head of a generator.
 	def hd(generator):
-		return list(itertools.islice(generator, 1))
-
-	def zip_aux(generator_1, generator_2, fst):
-		if fst == 0:
-			yield hd(generator_1)[0]
-			yield from zip_aux(generator_1, generator_2, 1)
+		next(generator)
+	# Auxiliary function that contains an additional parameter used for recursion.
+	def zip_aux(generator_1, generator_2, fst): # if fst == 1, yield from first generator. Else yield from second generator.
+		if fst == 1:
+			yield hd(generator_1)
+			yield from zip_aux(generator_1, generator_2, 0) # Make recursive call with fst set to 0.
 		else:
-			yield hd(generator_2)[0]
-			yield from zip_aux(generator_1, generator_2, 0)
+			yield hd(generator_2)
+			yield from zip_aux(generator_1, generator_2, 1) # Make recursive call with fst set to 1.
 
-	return zip_aux(generator_1, generator_2, 0)
+	# Call auxiliary function.
+	return zip_aux(generator_1, generator_2, 1)
 
 # zip_n: take two generators and return a generator that alternatingly returns n elements from each generator
 def zip_n(n, generator_1, generator_2):
 	def hd(generator):
-		return list(itertools.islice(generator, 1))
+		return next(generator)
 
-	def zip_n_aux(generator_1, generator_2, left, total):
-		if left > 0:
-			yield hd(generator_1)[0]
+	# Define an auxiliary function that accepts additional parameters used for recursion.
+	def zip_n_aux(generator_1, generator_2, left, total): # The parameter left represents how many more elements need to be yielded from the current generator.
+		if left > 0: 									  # The parameter total represents the total number of elements to yield from each generator.
+			yield hd(generator_1)
 			left -= 1
-			if left == 0:
-				yield from zip_n_aux(generator_1, generator_2, -total, total)
+			if left == 0:													  # If no more elements to be yielded from this generator...
+				yield from zip_n_aux(generator_1, generator_2, -total, total) # ...make recursive call with left equal to negative total value.
 			else:
-				yield from zip_n_aux(generator_1, generator_2, left, total)
+				yield from zip_n_aux(generator_1, generator_2, left, total)   # Else make recursive call with new value of left.
 
 		else:
-			yield hd(generator_2)[0]
+			yield hd(generator_2)
 			left += 1
-			if left == 0:
-				yield from zip_n_aux(generator_1, generator_2, total, total)
+			if left == 0: 													 # If no more elements to be yielded from this generator...
+				yield from zip_n_aux(generator_1, generator_2, total, total) # ...make recursive call with left equal to negative total value.
 			else:
-				yield from zip_n_aux(generator_1, generator_2, left, total)
+				yield from zip_n_aux(generator_1, generator_2, left, total)  # Else make recursive call with new value of left.
 			
-		
+	# Call auxiliary function.
 	return zip_n_aux(generator_1, generator_2, n, n)
-
-# unzip: take stream and return ordered pair of streams where the first stream contains the odd elements in stream and second stream even elements of stream.
-
-# unzip_n: take stream and return ordered pair of streams where streams alternatingly contain elements of each stream.
 
 # discard_n: return stream left after removing first n elements.
 def discard_n(n, generator):
 	itertools.islice(generator, n)
 	return generator
 
-# fold_n: perform fold on first n elements of list.
 
+# odd_elements: function that returns a generator that generates odd elements of passed generator.
+def odd_elements(generator):
+	yield next(generator)
+	next(generator)
+	yield from odd_elements(generator)
+
+# even elements: function that returns a generator that generates even elements of passed generator.
+def even_elements(generator):
+	next(generator)
+	yield next(generator)
+	yield from even_elements(generator)
+
+# fold_n: perform fold on first n elements of list.
+def fold_n(n, func, acc, generator):
+	next_el = next(generator)
+	if next_el == [] or n == 0: 			# If generator depleted or n == 0, return accumulator value.						
+		return acc
+	else:
+		return func(next_el, fold_n(n - 1, func, acc, generator)) # Else make recursive call for accumulator value.
 
 # fold_stream: perform fold operation on stream and return stream of accumulator values.
+def fold(func, acc, generator):
+	next_el = next(generator)
+	if next_el == []: 			 # If generator depleted, yield accumulator value and end.
+		yield acc
+	else: 						 # Else get next generator value and yield it. Then make a recursive call for the rest of the generator
+		acc = func(next_el, acc) # with the new accumulator value.
+		yield acc
+		yield from fold(func, acc, generator)
+
+#############################################################################
+# example of use of fold_n and fold
+#
+# nat_gen = nats(1)
+# cum_sum_nats = fold(lambda el, acc : acc + el, 0, nat_gen)
+#
+# nat_gen = nats(1)
+# sum_first_10_nats = fold_n(10, lambda el, acc : acc + el, 0, nat_gen)
+#############################################################################
+
 
 # rle: encode stream using the rle encoding algorithm. Return ordered pair (int * 'a).
 # NOTE: A type with two quotation marks in front of it instead of one is an equality type, which means that the = operator works on it. 
