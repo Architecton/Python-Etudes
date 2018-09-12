@@ -137,10 +137,44 @@ def fold(func, acc, generator):
 # sum_first_10_nats = fold_n(10, lambda el, acc : acc + el, 0, nat_gen)
 #############################################################################
 
+from more_itertools import peekable
 
-# rle: encode stream using the rle encoding algorithm. Return ordered pair (int * 'a).
-# NOTE: A type with two quotation marks in front of it instead of one is an equality type, which means that the = operator works on it. 
-# That also means that you can't call your function on things that are not equality types,  though.
+# rle: encode stream using the rle encoding algorithm. Return generator of rle tuples.
+# >>Ugly code warning<<
+def rle_encode(generator):
+	# rle_next: get next rle tuple (auxiliary function)
+	def rle_next(generator):
+
+		# encode next: encode next stream of elements in generator (auxiliary function)
+		def encode_next(generator):
+			next_el = next(generator, None) # Get next element in generator (None if generator is empty)
+			if next_el == None:
+				return None
+			count = 1 						# Initialize occurrences counter.
+
+			# Check if there are any more occurences of same element. StopIteration exception if generator is now empty.
+			try:
+				while(generator.peek() == next_el):
+					count += 1
+					next_el = next(generator)
+			except StopIteration:
+				pass
+			finally:
+				return (count, next_el)
+
+		return encode_next(generator)
+
+	# Check if generator has another element.
+	try:
+		generator = peekable(generator)
+		generator.peek()
+		# Yield next rle tuple.
+		yield rle_next(generator)
+		# Make recursive call.
+		yield from test(generator)
+	except StopIteration: 			# If generator exhausted, yield.
+		pass
+
 
 # rle_decode: take a stream of ordered pairs (int * 'a) where the first element is the number of repetitions of element at second position and
 # return a stream representing the decoded data (convert each ordered pair to n repetitions of elements and add to stream).
