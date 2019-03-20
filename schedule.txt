@@ -1,0 +1,2 @@
+tue: generators, closures, currying, list_exercises, OOP
+fri: multiple-dispatch, decorators, OOP (abc, inheritance)
